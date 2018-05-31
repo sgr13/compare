@@ -11,28 +11,13 @@ namespace DinoBundle\Repository;
 class DinoDataRepository extends \Doctrine\ORM\EntityRepository
 {
     public function getDinoData($dino, $rootPath)
-    {
+    {   
         $engLength = (string)$this->getEngLength($dino->getLength());
         $dino->setLengthEng($engLength);
-//        $firstPhoto = $dino->getFirstPhoto();
-//        $secondPhoto = $dino->getSecondPhoto();
-//        $firstPhotoFileName = md5(uniqid()) . '.' . $firstPhoto->guessExtension();
-//        $secondPhotoFileName = md5(uniqid()) . '.' . $secondPhoto->guessExtension();
-//        
-//        $firstPhoto->move(
-//            $rootPath . '/photo/',
-//            $firstPhotoFileName
-//        );
-//        
-//        $secondPhoto->move(
-//            $rootPath . '/photo/',
-//            $secondPhotoFileName
-//        );
-//        
-        $dino->setFirstPhoto($this->savePhoto($dino->getFirstPhoto(), $rootPath));
-        $dino->setSecondPhoto($this->savePhoto($dino->getSecondPhoto(), $rootPath));
-        
-        return $dino;
+        $this->addToBase($dino);
+        $dino->setFirstPhoto($this->savePhoto($dino->getFirstPhoto(), $rootPath, $dino, 'first'));
+        $dino->setSecondPhoto($this->savePhoto($dino->getSecondPhoto(), $rootPath, $dino, 'second'));
+        $this->addToBase($dino);
     }
     
     public function getEngLength($length)
@@ -40,15 +25,88 @@ class DinoDataRepository extends \Doctrine\ORM\EntityRepository
         return $length * 3.28084;
     }
     
-    public function savePhoto($photo, $rootPath)
+    public function savePhoto($photo, $rootPath, $dino, $number)
     {   
-        $photoFileName = md5(uniqid()) . '.' . $photo->guessExtension();
+
+        $photoFileName = $dino->getId() . '_' . $number . '_' . '1' . '.jpg';
 
         $photo->move(
             $rootPath . '/photo/',
             $photoFileName
         );
-//        dump($photoFileName);die;
+        
         return $photoFileName;
+    }
+    
+    public function onlyPhotoChange($form)
+    {
+        $form
+            ->remove('orginalName')
+            ->remove('name')
+            ->remove('length')
+            ->remove('weight')
+            ->remove('foodtype')
+            ->remove('period')
+            ->remove('subPeriod')
+            ->remove('mainOrder')
+            ->remove('subOrder')
+            ->remove('infraOrder')
+            ->remove('family')
+            ->remove('meaning')
+            ->remove('meaningEng')
+            ->remove('discoverYear')
+            ->remove('discoverer');
+        
+        return $form;
+    }
+    
+    public function addToBase($dino)
+    {   
+        $em = $this->getEntityManager();
+        $em->persist($dino);
+        $em->flush();
+    }
+    
+    public function getProperlyWeight($weight)
+    {   
+        if ($weight < 1000) { 
+            return $this->getWeightInKilos($weight);
+        } else {
+            return $this->getWeightInTons($weight);
+        }
+    }
+    
+    public function getWeightInKilos($weight)
+    {
+        return array (
+            'weight' => $weight,
+            'description' => 'kg'
+        );
+    }
+    
+    public function getWeightInTons($weight)
+    {
+        if ($weight == 1) {
+            $description = 'tona';
+        } else if ($weight % 10 == 0 && $weight > 9999) {
+            $description = 'ton';
+        } else {
+            $cleanWeight = rtrim($weight, '0');
+            $cleanWeight = substr($cleanWeight, -1);
+            if ($cleanWeight == 1) {
+                $description = 'ton';
+            } else if ($cleanWeight > 1 && $cleanWeight < 5) {
+                $description = 'tony';
+            } else {
+                $description = 'ton';
+            }
+        }
+        
+        $correctWeight = $weight / 1000;
+        
+        return array (
+            'weight' => $correctWeight,
+            'description' => $description
+        );
     }
 }

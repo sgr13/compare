@@ -1,0 +1,82 @@
+{% extends "::baseShowDino.html.twig" %}
+
+{% block title %}ShowDino{% endblock %}
+
+{% block body %}
+    <div id="mainContainerBackground">
+    </div>
+    <div id="mainContainer">
+        <div id="firstRow">
+            <span>{{dino.name}}</span>
+        </div>
+        <div id="secondRow">
+            <div class="cont">
+                <div class="card">
+                    <div class="face front1"><img src="/photo/{{dino.firstPhoto}}"></div>
+                    <div class="face2 back1"><img src="/photo/{{dino.secondPhoto}}"></div>
+                    <div class="face3 bottom1"><span>DINOZAURY</spam></div>
+                </div>
+            </div>
+            <div id="contentData" style="padding: 3vw;">
+                <table style="margin-left: auto; margin-right: auto; margin-top: 20px; width:90%">
+                    <tr>
+                        <td><span>Waga:</span></td>
+                        <td><span>{{weight}} {{weightDescription}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Długość:</td>
+                        <td><span>{{dino.length}} m</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Typ:</td>
+                        <td><span>{{dino.foodType.name}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Rząd:</td>
+                        <td><span>{{dino.mainOrder.name}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Podrząd:</td>
+                        <td><span>{{dino.subOrder.name}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>Infrarząd:</td>
+                        <td>{{dino.infraOrder.name}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Rodzina:</td>
+                        <td><span>{{dino.family}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Epoka:</td>
+                        <td><span>{{dino.period.name}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Okres:</td>
+                        <td><span>{{dino.subPeriod.name}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Odkryty w:</td>
+                        <td><span>{{dino.discoverYear}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Odkrywca:</td>
+                        <td><span>{{dino.discoverer.name}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><span>Znaczenie nazwy:</span></td>
+                        <td><span>{{dino.meaning}}</span></td>
+                    </tr>
+                    <tr>
+                        <td><a href="{{path('editDino', {'id': dino.id})}}">Edycja</a>
+                        /
+                        <a href="{{path('changePhoto', {'id': dino.id})}}">Zdjęcia</a>
+                        /
+                        <a href="{{path('deleteDino', {'id': dino.id})}}">Usuń</a>
+                    </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

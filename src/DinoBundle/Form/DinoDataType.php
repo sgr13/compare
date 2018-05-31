@@ -13,7 +13,8 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 class DinoDataType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options) 
-    {
+    {   
+//        dump($options);die;
         $builder
                 ->add('orginalName', TextType::class, array('label' => 'Nazwa:'))
                 ->add('name', TextType::class, array('label' => 'Polska nazwa:'))
@@ -48,17 +49,23 @@ class DinoDataType extends AbstractType
                 ->add('secondPhoto', FileType::class, array('data_class' => null, 'label' => 'Drugie zdjęcie:'))
                 ->add('save', SubmitType::class, array('label' => 'Dodaj'))      
         ;
+        
+//        if ($options['noPhoto']) {
+//            $builder->remove('firstPhoto')
+//                    ->remove('secondPhoto');
+//        }
     }
     
-    public function getName()
-    {
-        return '';
-    }
+//    public function getName()
+//    {
+//        return 'remove_form_field';
+//    }
     
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'data_class' => 'DinoBundle\Entity\DinoData'
+            'data_class' => 'DinoBundle\Entity\DinoData',
+//            'noPhoto' => 0,
         ));
     }
 

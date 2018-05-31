@@ -8,11 +8,12 @@ use Symfony\Component\HttpFoundation\Request;
 use DinoBundle\Entity\DinoData;
 use DinoBundle\Form\DinoDataType;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class DinosaurController extends Controller
 {
     /**
-     * @Route("/addDino")
+     * @Route("/addDino", name="addDino")
      */
     public function addDinoAction(Request $request)
     {   
@@ -23,31 +24,44 @@ class DinosaurController extends Controller
         
         if ($form->isSubmitted()) {
             
-            $dino = $this->getDoctrine()->getRepository('DinoBundle:DinoData')->getDinoData($dino = $form->getData(), $rootPath);
-            $em = $this->getDoctrine()->getManager();
-//            dump($dino);die;
-            $em->persist($dino);
-            $em->flush();
+            $this->getDoctrine()->getRepository('DinoBundle:DinoData')->getDinoData($dino = $form->getData(), $rootPath);
             return new Response("Dodano nowego Dinozaura");
         }
         
         return $this->render('DinoBundle:Dinosaur:add_dino.html.twig', array(
             'form' => $form->createView()
-        ));
+        )); 
     }
 
     /**
-     * @Route("/editDino")
+     * @Route("/editDino/{id}", name="editDino")
      */
-    public function editDinoAction()
-    {
+    public function editDinoAction(Request $request, $id)
+    {   
+        $dinoRepository = $this->getDoctrine()->getRepository('DinoBundle:DinoData');
+        $dino = $dinoRepository->find($id);
+        
+        if (!$dino) {
+            throw new NotFoundHttpException('Nie znaleziono dinozaura o podanym ID');
+        }
+        $form = $this->createForm(DinoDataType::class, $dino);
+        $form->remove('firstPhoto')->remove('secondPhoto');
+        $form->handleRequest($request);
+        
+        if ($form->isSubmitted()) {
+            $engLength = (string)$this->getDoctrine()->getRepository('DinoBundle:DinoData')->getEngLength($dino->getLength());
+            $dino->setLengthEng($engLength);
+            $dinoRepository->addToBase($dino);
+            return $this->redirect('/showAll');
+         }
+                
         return $this->render('DinoBundle:Dinosaur:edit_dino.html.twig', array(
-            // ...
+            'form' => $form->createView()
         ));
     }
 
     /**
-     * @Route("/deleteDino")
+     * @Route("/deleteDino", name="deleteDino")
      */
     public function deleteDinoAction()
     {
@@ -60,19 +74,57 @@ class DinosaurController extends Controller
      * @Route("/showAll")
      */
     public function showAllAction()
-    {
+    {   
+        $dinos = $this->getDoctrine()->getRepository('DinoBundle:DinoData')->findAll();
+//        dump($dinos);die;
         return $this->render('DinoBundle:Dinosaur:show_all.html.twig', array(
-            // ...
+            'dinos' => $dinos
         ));
     }
 
     /**
-     * @Route("/changePhoto")
+     * @Route("/changePhoto/{id}", name="changePhoto")
      */
-    public function changePhotoAction()
-    {
+    public function changePhotoAction(Request $request, $id)
+    {   
+        $dinoRepository = $this->getDoctrine()->getRepository('DinoBundle:DinoData');
+        $dino = $dinoRepository->find($id);
+        
+        if (!$dino) {
+            throw new NotFoundHttpException('Nie znaleziono dinozaura o podanym ID');
+        }
+        
+        $form = $this->createForm(DinoDataType::class, $dino);
+        $form = $dinoRepository->onlyPhotoChange($form);
+        $form->handleRequest($request);
+        
+        if ($form->isSubmitted()) {
+            $rootPath = $request->server->get('DOCUMENT_ROOT').$request->getBasePath();
+            $dino = $form->getData();
+            $dino->setFirstPhoto($dinoRepository->savePhoto($dino->getFirstPhoto(), $rootPath, $dino, 'first'));
+            $dino->setSecondPhoto($dinoRepository->savePhoto($dino->getSecondPhoto(), $rootPath, $dino, 'second'));
+            
+            $dinoRepository->addToBase($dino);
+            return $this->redirect('/showAll');
+        }
+        
         return $this->render('DinoBundle:Dinosaur:change_photo.html.twig', array(
-            // ...
+            'form' => $form->createView()
+        ));
+    }
+    
+    /**
+     * @route("/showDino/{id}", name="showDino")
+     */
+    public function showDinoAction($id)
+    {   
+        $dino = $this->getDoctrine()->getRepository('DinoBundle:DinoData')->find($id);
+        $weight = $this->getDoctrine()->getRepository('DinoBundle:DinoData')->getProperlyWeight($dino->getWeight());
+        
+        return $this->render('DinoBundle:Dinosaur:showDino.html.twig', array(
+            'dino' => $dino,
+            'weight' => $weight['weight'],
+            'weightDescription' => $weight['description']
         ));
     }
 
